@@ -35,13 +35,18 @@ Learn → Experiment → Understand → Build
 
 ## 🗺️ Roadmap
 
+[完整项目计划](PROJECT_PLAN.md) · [学习与记录方法](LEARNING.md)
+
 [查看完整学习路线](ROADMAP.md)
+
+按每周 6～8 小时的假设安排一年：单机推理 → GPU 与引擎源码 → 推理优化 → 通信与并行 → 服务平台 → 综合项目。
+前八周细化到每周，后续每月按实验反馈和硬件条件调整。当前已建立计划，尚无实验结果。
 
 ## 🔬 Experiments
 
 | ID | Topic | Status |
 |----|-------|--------|
-| 001 | Prefill & Decode | Planned |
+| [001](labs/001-prefill-decode/README.md) | Prefill & Decode | Planned |
 | 002 | KV Cache | Planned |
 
 ## 📚 Technical Notes
@@ -51,6 +56,8 @@ See [notes](notes/).
 ## 📈 Learning Journal
 
 See [journal](journal/).
+
+[当前学习记录](journal/2026-W42.md) · [实验报告模板](templates/lab-report.md) · [周记录模板](templates/weekly-journal.md)
 
 ## 🏗️ Projects
 
