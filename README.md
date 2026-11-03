@@ -35,6 +35,10 @@ Learn → Experiment → Understand → Build
 
 ## 🗺️ Roadmap
 
+[自学课程计划：24 节课的目标与参考资料](COURSE_PLAN.md)
+
+当前方式：助手提供计划、目标与资料；学习、实验、总结和进度由学习者自主安排。
+
 [完整项目计划](PROJECT_PLAN.md) · [学习与记录方法](LEARNING.md)
 
 [查看完整学习路线](ROADMAP.md)
@@ -46,7 +50,7 @@ Learn → Experiment → Understand → Build
 
 | ID | Topic | Status |
 |----|-------|--------|
-| [001](labs/001-prefill-decode/README.md) | Prefill & Decode | Planned |
+| [001](labs/001-prefill-decode/README.md) | Prefill & Decode | 自主学习中；暂无实测结果 |
 | 002 | KV Cache | Planned |
 
 ## 📚 Technical Notes

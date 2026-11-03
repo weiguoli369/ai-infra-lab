@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>从 Token 到显存 · Inference Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#10141c;--panel:#181e29;--line:#303a49;--ink:#edf2fa;--muted:#a7b3c5;--a:#92b7ff;--b:#70dfbb;--warn:#f1ba80;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 system-ui,-apple-system,"PingFang SC",sans-serif}button,input,select{font:inherit}button,select{cursor:pointer}button,a,input,select{outline-offset:5px}a{color:var(--a)}button{border:1px solid var(--line);border-radius:9px;padding:9px 16px;background:#242e40;color:var(--ink)}button:hover{background:#34445f}button.primary{background:var(--a);color:#101827;border-color:var(--a)}button:disabled{opacity:.45;cursor:default}header,main,footer{max-width:1240px;margin:auto;padding:0 32px}header{padding-top:32px}.brand{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font:12px var(--mono);letter-spacing:1.6px}.brand b{color:var(--b)}h1{font-size:clamp(32px,5vw,56px);letter-spacing:-2px;line-height:1.2;margin:38px 0 16px}h1 span{color:var(--a)}.intro{max-width:700px;color:var(--muted);margin:0 0 28px}nav{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0 26px}nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--line);border-radius:24px}nav a:hover{color:var(--ink);border-color:var(--a)}section{scroll-margin-top:24px;margin-bottom:26px;border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:28px}.section-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:24px}.num{font:18px var(--mono);color:var(--b);padding-top:4px}h2{font-size:23px;margin:0 0 4px;line-height:1.5}h3{font-size:15px;margin:0 0 14px}.sub,.note{font-size:13px;color:var(--muted)}.sub{margin:0}.note{margin:16px 0 0;line-height:1.8}.tag{display:inline-block;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 7px;font:12px/1.7 var(--mono)}.grid3{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:24px}.flow-col{min-width:0}.field{display:block;color:var(--muted);font-size:13px}select{background:#111823;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;max-width:100%}.controls{display:flex;align-items:end;gap:24px;flex-wrap:wrap;margin:20px 0 24px}.controls label{flex:1;min-width:150px}.controls label.small{flex:0 1 130px;min-width:100px}input[type=range]{display:block;width:100%;accent-color:var(--a);margin:12px 0 0}output,code,.mono{font-family:var(--mono)}output{color:var(--ink)}.text-sample{font-size:27px;letter-spacing:3px;padding:12px 0 22px}.tokens{display:flex;flex-wrap:wrap;gap:6px;min-height:42px}.token{display:flex;align-items:center;justify-content:center;background:#2b3c5b;color:var(--a);border-radius:5px;min-width:30px;min-height:34px;font:12px var(--mono);padding:5px}.token.b{background:#203e39;color:var(--b)}.token.pad{background:repeating-linear-gradient(135deg,#3d3229,#3d3229 4px,#332c27 4px,#332c27 8px);color:var(--warn)}.token.unused{background:#292e38;color:var(--muted)}.token.active{outline:2px solid var(--ink);outline-offset:2px}.token.word{font:16px system-ui;padding:10px 14px}.token.word small{display:block;font:11px var(--mono);margin-left:10px}.embedding-table{display:grid;gap:5px}.embed-row{display:flex;gap:4px;align-items:center;opacity:.32}.embed-row.hit{opacity:1}.embed-row code{font-size:11px;min-width:55px}.embed-row i{display:block;flex:1;height:15px;background:var(--a);opacity:var(--alpha)}.embed-row.b i{background:var(--b)}.vector{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:14px 0}.vector i{height:20px;border-radius:2px;background:var(--a);opacity:var(--alpha)}.vector.b i{background:var(--b)}.tensor{border-left:3px solid var(--a);padding:8px 14px;margin:12px 0;font:16px var(--mono);background:#202b3d}.hidden{display:none!important}.requests{display:grid;gap:12px}.request{display:grid;grid-template-columns:80px 1fr;align-items:center;gap:8px}.request>span{font:13px var(--mono)}.request .tokens{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:5px}.request .token{min-width:0;padding:4px 1px;font-size:10px}.split{display:grid;grid-template-columns:1.5fr 1fr;gap:28px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0}.stat{padding:12px 0;border-top:1px solid var(--line)}.stat small{color:var(--muted);display:block;font-size:12px}.stat strong{display:block;font:24px/1.7 var(--mono)}.stat.warn strong{color:var(--warn)}.meter{height:12px;display:flex;background:#2a303b;border-radius:4px;overflow:hidden;margin-top:10px}.meter .valid{background:var(--a);transition:width .25s}.meter .waste{background:var(--warn);transition:width .25s}.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted);margin:12px 0}.legend span:before{content:"";display:inline-block;width:8px;height:8px;background:var(--a);margin-right:6px}.legend .b:before{background:var(--b)}.legend .w:before{background:var(--warn)}.explain{background:#121925;border-radius:10px;padding:18px;color:var(--muted);font-size:13px}.explain b{color:var(--ink)}.packed{padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:18px}.blocks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.block{padding:10px;border:1px solid var(--line);border-radius:8px;min-width:0}.block strong{font:12px var(--mono);color:var(--muted)}.block .tokens{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:8px;min-height:20px}.block .token{font-size:9px;min-width:0;min-height:24px;padding:2px}.block.selected{border-color:var(--ink);background:#283246}.mapping{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.mapping button{font:12px var(--mono);padding:8px}.mapping button.a{color:var(--a)}.mapping button.b{color:var(--b)}.mapping button[aria-pressed=true]{outline:2px solid var(--ink)}.scheduler{margin-top:28px;padding-top:24px;border-top:1px solid var(--line)}.stepbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.schedule{display:grid;gap:8px;margin-top:16px}.schedule-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.schedule-row>span{min-width:95px;font-size:13px;color:var(--muted)}.schedule-row .token{padding:8px 12px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}th{color:var(--muted);font-weight:500}td,th{padding:13px 10px;border-bottom:1px solid var(--line)}td code{color:var(--a);white-space:nowrap}.formula{font:13px/1.9 var(--mono);overflow-wrap:anywhere}.calc{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}footer{padding-top:8px;padding-bottom:40px;color:var(--muted);font-size:12px}footer a{margin-right:18px}.pulse{animation:lookup .6s ease-out}@keyframes lookup{from{transform:translateY(9px);opacity:.2}to{transform:translateY(0);opacity:1}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}@media(max-width:800px){.grid3,.split{grid-template-columns:1fr}.flow-col+.flow-col{border-top:1px solid var(--line);padding-top:20px}.stats{gap:8px}.stat strong{font-size:20px}.blocks{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:480px){header,main,footer{padding-left:16px;padding-right:16px}section{padding:18px}h2{font-size:19px}.brand{font-size:10px;letter-spacing:.5px}.stats,.calc{grid-template-columns:1fr}.request{grid-template-columns:1fr}.blocks{grid-template-columns:repeat(2,minmax(0,1fr))}.controls{gap:18px}.request .token{font-size:9px}.section-head{gap:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>AI INFRA / INTERACTIVE LAB</b><span>EXPLORER 001</span></div>
+  <h1>从 <span>Token</span> 到显存</h1>
+  <p class="intro">一句话如何变成张量？不同长度的请求如何一起计算？拖动参数，观察 Padding、紧密打包与分页 KV Cache 的空间变化。</p>
+  <span class="tag">Qwen2.5-0.5B 架构参数 · 教学模拟 · 非性能实测</span>
+  <nav aria-label="看板导航"><a href="#embedding">01 分词与嵌入</a><a href="#padding">02 Padding 开销</a><a href="#paging">03 vLLM 调度与分页</a><a href="#reference">04 维度速查</a></nav>
+</header>
+<main>
+<section id="embedding">
+  <div class="section-head"><span class="num">01</span><div><h2>分词，是索引；嵌入，是查表</h2><p class="sub">Token ID 选择一行向量，不是将 ID 数值直接变成特征。</p></div></div>
+  <div class="grid3">
+    <div class="flow-col"><h3>文本 → Token IDs</h3><div class="text-sample">人工智能是</div><button id="tokenize" class="primary">分词并查表 →</button><div id="word-tokens" class="tokens" style="margin-top:18px"></div><p class="note">固定教学切分：人工 / 智能是。ID 沿用蓝图示例，未运行真实 tokenizer；分词边界与 ID 以实际模型为准。</p></div>
+    <div class="flow-col"><h3>Embedding table <span class="tag">[151936, 896]</span></h3><div id="embed-table" class="embedding-table"></div><p class="note">行号从 0 开始；这里只展示稀疏抽样行和部分特征。点击 Token 可切换命中行。</p></div>
+    <div class="flow-col"><h3>查表 → Hidden states</h3><div id="vectors"></div><div id="tensor" class="tensor">等待查表</div><p class="note">颜色深浅为合成示意值，并非模型权重。每个 token 对应 896 个数；Batch 维保留为 1。</p></div>
+  </div>
+</section>
+<section id="padding">
+  <div class="section-head"><span class="num">02</span><div><h2>矩形 Batch 的空位，也占空间</h2><p class="sub">比较采用 dense padding 的常见批处理方式。PyTorch 本身也支持其他可变长实现，并非强制补齐。</p></div></div>
+  <div class="controls">
+    <label class="field">请求 A · <output id="a-value">10 tokens</output><input id="length-a" aria-label="请求 A 长度" type="range" min="1" max="16" value="10"></label>
+    <label class="field">请求 B · <output id="b-value">2 tokens</output><input id="length-b" aria-label="请求 B 长度" type="range" min="1" max="16" value="2"></label>
+    <label class="field small">隐藏状态 / KV 精度<select id="precision"><option value="2">BF16 · 2 B</option><option value="2">FP16 · 2 B</option><option value="4">FP32 · 4 B</option></select></label>
+  </div>
+  <div class="split"><div><div id="padded" class="requests"></div><div class="legend"><span>A 有效 token</span><span class="b">B 有效 token</span><span class="w">PAD 空位</span></div><div class="meter" role="img" id="pad-meter"><div class="valid"></div><div class="waste"></div></div><p id="batch-shape" class="note mono"></p></div><aside class="explain"><b>为什么合批通常更高效？</b><p>多个请求可在同一批矩阵运算中复用权重读取、摊薄 kernel 启动开销，尤其有利于带宽受限的 decode。</p><p>权重通常已驻留显存；计算时分块读取到片上缓存 / 寄存器。合批不意味着整份权重“只读一次”，分开运行也不保证耗时翻倍。</p></aside></div>
+  <div class="stats" aria-live="polite"><div class="stat"><small>有效隐藏状态 · 两个请求合计</small><strong id="useful"></strong></div><div class="stat"><small>补齐后的隐藏状态 · 合计</small><strong id="dense"></strong></div><div class="stat warn"><small>PAD 额外占用 / 全 Batch 浪费率</small><strong id="waste"></strong></div></div>
+  <p id="b-detail" class="note"></p><p class="note">本看板只计算一个 [B, S, H] 隐藏状态张量，不是推理总显存。Attention mask 隔离 PAD，但实际是否跳过计算、KV 是否为 PAD 分配空间，取决于 kernel 与缓存实现。</p>
+</section>
+<section id="paging">
+  <div class="section-head"><span class="num">03</span><div><h2>计算紧密打包，缓存按块寻址</h2><p class="sub">Packing 处理变长输入；PagedAttention 管理 KV 的逻辑块到物理块映射；连续批处理决定每轮执行哪些请求。</p></div></div>
+  <h3>① 本轮 Prefill 的 packed token buffer <span class="tag" id="packed-shape"></span></h3><div id="packed" class="tokens packed"></div><p class="note" id="boundaries"></p>
+  <div class="controls"><label class="field small">KV 块容量（教学值）<select id="block-size"><option value="4">4 tokens</option><option value="8">8 tokens</option><option value="16">16 tokens</option></select></label><span class="sub">每个请求独立分块；尾块空位不会跨请求自动拼满。</span></div>
+  <div class="split"><div><h3>② 逻辑块 → 物理块 · 点击映射定位</h3><div id="mapping" class="mapping"></div><div id="map-detail" class="explain" aria-live="polite">选择一条映射，查看对应的物理块。</div><p class="note">块号和摆放顺序为模拟。每个可视块表示一个跨层 KV 块束；真实实现通常按层管理 KV 张量。</p></div><div><h3>③ GPU KV 内存池（局部示意）</h3><div id="blocks" class="blocks"></div></div></div>
+  <div class="stats" aria-live="polite"><div class="stat"><small>有效 KV 数据 · 全部 24 层</small><strong id="kv-valid"></strong></div><div class="stat"><small>已分配块容量 · 全部 24 层</small><strong id="kv-alloc"></strong></div><div class="stat warn"><small>尾块空闲 / 已分配容量</small><strong id="kv-slack"></strong></div></div>
+  <p class="note">无序列对齐 PAD ≠ 零浪费。这里只估算按块占用，不含权重、临时激活、元数据或引擎预留的空闲内存池；不是 nvidia-smi 的显存读数。教学块大小不代表特定后端支持的配置。</p>
+  <div class="scheduler"><h3>④ 连续批处理 · 按轮替换已完成请求</h3><div class="stepbar"><button id="next-step" class="primary">执行下一轮 →</button><button id="reset-step">重置</button><span class="sub" id="step-label" aria-live="polite"></span></div><div id="schedule" class="schedule"></div><p class="note" id="schedule-note"></p><p class="note">独立调度示例：A / B 分别还需生成 4 / 1 个 token，C 等待加入（还需生成 2 个）。上方长度滑块只控制 Prefill 与分页计算。为突出轮间替换，省略 C 的 Prefill 与调度预算细节。</p></div>
+</section>
+<section id="reference">
+  <div class="section-head"><span class="num">04</span><div><h2>数据流向与维度速查</h2><p class="sub">输入、激活、持久缓存，属于三种不同的数据。</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>阶段</th><th>Dense batch</th><th>Packed batch / 分页</th><th>含义</th></tr></thead><tbody id="dimensions"></tbody></table></div>
+  <div class="calc"><div class="explain"><b>隐藏状态 / token</b><p class="formula" id="hidden-formula"></p><span>仅一个位置、一个隐藏状态向量；不会乘上层数当作常驻缓存。</span></div><div class="explain"><b>KV Cache / token · 全部层</b><p class="formula" id="kv-formula"></p><span>L=24，KV heads=2，head dim=896÷14=64。K 和 V 各一份。此处假设 KV 与隐藏状态精度一致。</span></div></div>
+  <p class="note">[N] 是 Token ID 数组；嵌入后的 packed hidden states 为 [N, 896]，不是一条包含所有特征的标量长向量。请求边界、位置编号和 attention 元数据确保不同请求不会彼此注意。Decode 每轮通常仅输入每个活跃请求的新 token，并读取历史 KV。</p>
+</section>
+</main>
+<footer>依据：<a href="https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/blob/main/config.json" target="_blank" rel="noopener">Qwen2.5-0.5B 配置</a><a href="https://vllm.ai/blog/2023-06-20-vllm" target="_blank" rel="noopener">vLLM · PagedAttention</a><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener">PagedAttention 论文</a><p>单位：1 KiB = 1024 B。所有动画与内存块均为教学模拟，可离线使用。</p></footer>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const kib = bytes => (bytes / 1024).toFixed(2) + ' KiB';
+  const pct = (part, total) => (100 * part / total).toFixed(1) + '%';
+  const tile = (text, cls = '') => `<span class="token ${cls}">${text}</span>`;
+  const vector = cls => `<div class="vector ${cls}" aria-label="896 维向量的 16 个合成特征">${Array.from({length:16},(_,i)=>`<i style="--alpha:${.2+((i*7+3)%13)/16}"></i>`).join('')}</div>`;
+  let embedded = false, selectedId = 105043, step = 0;
+  function renderEmbedding() {
+    const rows = [0, '…', 99341, '…', 105043, '…', 151935];
+    $('embed-table').innerHTML = rows.map((id,i)=>`<div class="embed-row ${id===99341?'b':''} ${embedded&&id===selectedId?'hit':''}"><code>${id}</code>${Array.from({length:10},(_,j)=>`<i style="--alpha:${.25+((j*3+i)%9)/12}"></i>`).join('')}</div>`).join('');
+    if (!embedded) { $('vectors').innerHTML='<p class="sub">2 tokens → 2 行向量 → 1 个张量</p>'; return; }
+    $('word-tokens').innerHTML = [ ['人工',105043,''],['智能是',99341,'b'] ].map(([word,id,cls])=>`<button class="token word ${cls} ${id===selectedId?'active':''}" data-id="${id}" aria-pressed="${id===selectedId}">${word}<small>${id}</small></button>`).join('');
+    $('vectors').innerHTML = `<span class="tag">ID ${selectedId} → 第 ${selectedId} 行（0-based）</span>${vector(selectedId===99341?'b':'')}<span class="sub">两次查表结果沿 Seq 维堆叠</span>`;
+    $('tensor').textContent = '[1, 2, 896]';
+    $('vectors').classList.remove('pulse'); void $('vectors').offsetWidth; $('vectors').classList.add('pulse');
+  }
+  $('tokenize').addEventListener('click',()=>{ embedded=true; renderEmbedding(); $('tokenize').textContent='重新演示查表 ↻'; });
+  $('word-tokens').addEventListener('click',event=>{ const button=event.target.closest('button[data-id]'); if(button){selectedId=Number(button.dataset.id);renderEmbedding();} });
+  function render() {
+    const a=Number($('length-a').value), b=Number($('length-b').value), bytes=Number($('precision').value), block=Number($('block-size').value);
+    const max=Math.max(a,b), n=a+b, slots=2*max, pad=slots-n, h=896*bytes, kv=2*24*2*64*bytes;
+    $('a-value').textContent=`${a} tokens`; $('b-value').textContent=`${b} tokens`;
+    $('padded').innerHTML=[['A',a,''],['B',b,'b']].map(([name,len,cls])=>`<div class="request"><span>请求 ${name}</span><div class="tokens" style="--cols:${max}">${Array.from({length:max},(_,i)=>tile(i<len?`${name}${i+1}`:'PAD',i<len?cls:'pad')).join('')}</div></div>`).join('');
+    $('batch-shape').textContent=`IDs [2, ${max}] → Hidden states [2, ${max}, 896]`;
+    $('useful').textContent=kib(n*h); $('dense').textContent=kib(slots*h); $('waste').textContent=`${kib(pad*h)} / ${pct(pad,slots)}`;
+    const meter=$('pad-meter'); meter.children[0].style.width=pct(n,slots);meter.children[1].style.width=pct(pad,slots);meter.setAttribute('aria-label',`${n} 个有效位置，${pad} 个 PAD，浪费率 ${pct(pad,slots)}`);
+    $('b-detail').textContent=`请求 B：真实 ${kib(b*h)} → 补齐后 ${kib(max*h)}；额外 ${kib((max-b)*h)}，自身浪费率 ${pct(max-b,max)}。全 Batch 共 ${pad} 个 PAD。`;
+    $('packed').innerHTML=Array.from({length:a},(_,i)=>tile(`A${i+1}`)).join('')+Array.from({length:b},(_,i)=>tile(`B${i+1}`,'b')).join('');
+    $('packed-shape').textContent=`IDs [${n}] → Hidden [${n}, 896]`;
+    $('boundaries').textContent=`请求边界 cu_seqlens = [0, ${a}, ${n}]；position_ids = [0…${a-1}, 0…${b-1}]。连续存放不代表跨请求共享注意力。`;
+    const entries=[];let index=0;const count=Math.ceil(a/block)+Math.ceil(b/block), pool=count+3;
+    // Rotating a reversed pool gives unique, non-contiguous physical IDs with free gaps.
+    const physical=Array.from({length:pool},(_,i)=>i).reverse();physical.push(...physical.splice(0,2));
+    for(const [name,len,cls] of [['A',a,''],['B',b,'b']]) {
+      for(let logical=0;logical<Math.ceil(len/block);logical++) entries.push({name,cls,logical,physical:physical[index++],used:Math.min(block,len-logical*block)});
+    }
+    $('mapping').innerHTML=entries.map(e=>`<button class="${e.cls||'a'}" data-block="${e.physical}" aria-pressed="false">${e.name}[${e.logical}] → P${e.physical}</button>`).join('');
+    $('blocks').innerHTML=Array.from({length:pool},(_,p)=>{const e=entries.find(x=>x.physical===p);return `<div class="block" id="physical-${p}"><strong>P${p} · ${e?e.name+'['+e.logical+']':'空闲'}</strong><div class="tokens">${e?Array.from({length:block},(_,i)=>tile(i<e.used?`${e.name}${e.logical*block+i+1}`:'·',i<e.used?e.cls:'unused')).join(''):'<span class="sub">未分配</span>'}</div></div>`;}).join('');
+    $('map-detail').textContent='选择一条映射，查看对应的物理块。';
+    $('mapping').onclick=event=>{const button=event.target.closest('button[data-block]');if(!button)return;const p=Number(button.dataset.block),e=entries.find(x=>x.physical===p);document.querySelectorAll('.block.selected').forEach(el=>el.classList.remove('selected'));$('physical-'+p).classList.add('selected');$('mapping').querySelectorAll('button').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));$('map-detail').textContent=`请求 ${e.name} 的逻辑块 ${e.logical} → 物理块 P${p}；有效 ${e.used}/${block} 个 token，尾部空闲 ${block-e.used} 个槽。`;};
+    const capacity=count*block, slack=capacity-n;
+    $('kv-valid').textContent=kib(n*kv);$('kv-alloc').textContent=kib(capacity*kv);$('kv-slack').textContent=`${slack} 槽 / ${pct(slack,capacity)}`;
+    $('dimensions').innerHTML=[['Token IDs',`[2, ${max}]`,`[${n}]`,'整数索引；不是浮点特征'],['Embedding',`[2, ${max}, 896]`,`[${n}, 896]`,'每个有效 token 查一行'],['K / V · 单层',`各 [2, 2, ${max}, 64]`,'逻辑上每请求各 [2, Sᵢ, 64]','2 个 KV heads；布局因后端而异'],['KV · 跨层',`dense 容量示例 ${kib(slots*kv)}`,`${count} 块束 × ${block} 槽 = ${kib(capacity*kv)}`,'分页物理布局；含尾块空位']].map(row=>`<tr><td>${row[0]}</td><td><code>${row[1]}</code></td><td><code>${row[2]}</code></td><td>${row[3]}</td></tr>`).join('');
+    $('hidden-formula').textContent=`H × bytes = 896 × ${bytes} = ${h} B = ${kib(h)}`;
+    $('kv-formula').textContent=`2(K,V) × L × Hkv × Dhead × bytes = 2 × 24 × 2 × 64 × ${bytes} = ${kv} B = ${kib(kv)}`;
+  }
+  const frames=[{active:['A · 待生成 4','B · 待生成 1'],queue:['C · 等待'],done:[],note:'第 0 轮：A、B 已完成 Prefill，准备 Decode。'}, {active:['A · 剩余 3','B · 本轮完成'],queue:['C · 等待'],done:[],note:'第 1 轮：A、B 各生成 1 个 token；B 完成，下一轮可释放其 KV 块。'}, {active:['A · 剩余 2','C · 剩余 1'],queue:[],done:['B'],note:'第 2 轮：B 离开，C 完成入场 Prefill 后加入 Decode，不必等待 A 结束。'}, {active:['A · 剩余 1','C · 本轮完成'],queue:[],done:['B'],note:'第 3 轮：C 完成；A 继续使用自己的历史 KV。'}, {active:['A · 本轮完成'],queue:[],done:['B','C'],note:'第 4 轮：A 完成，全部请求结束。每轮活跃 Batch 都可以变化。'}];
+  function renderSchedule(){const f=frames[step];$('step-label').textContent=`轮次 ${step} / 4`;$('schedule').innerHTML=[['本轮执行',f.active],['等待队列',f.queue],['此前已完成',f.done]].map(([label,list])=>`<div class="schedule-row"><span>${label}</span>${list.length?list.map(text=>tile(text,text.startsWith('A')?'':'b')).join(''):'<span class="sub">—</span>'}</div>`).join('');$('schedule-note').textContent=f.note;$('next-step').disabled=step===4;}
+  $('next-step').addEventListener('click',()=>{if(step<4)step++;renderSchedule();});$('reset-step').addEventListener('click',()=>{step=0;renderSchedule();});
+  ['length-a','length-b','precision','block-size'].forEach(id=>$(id).addEventListener('input',render));
+  renderEmbedding();render();renderSchedule();
+})();
+</script>
+</body>
+</html>

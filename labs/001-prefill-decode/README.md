@@ -1,6 +1,54 @@
 # Lab 001：输入长度与 Prefill / Decode
 
-状态：Planned · 阶段：S1 · 尚无代码和实验结果 · GitHub Issue：待创建。
+状态：In Progress（已选择 Colab，GPU 与真实运行待确认） · 阶段：S1 · 尚无模型实验结果 · GitHub Issue：待创建。
+
+## 当前入口：自学课程计划
+
+目标与参考资料见 [自学课程计划第 01～04 课](../../COURSE_PLAN.md)。阅读、实验与进度由用户自主安排。以下先前生成的教程和工具说明仅保留为历史参考，不作为当前学习要求。
+
+## 可选参考：Colab
+
+使用 [colab.ipynb](colab.ipynb)。打开 [Google Colab](https://colab.research.google.com/)，选择“文件 → 上传笔记本”，上传此文件，然后在“运行时 → 更改运行时类型”中选择可用 GPU。
+
+先执行到第 5 步“第一次真实生成”，将 GPU 型号、输入/输出 Token 数、本地首 Token 延迟、后续 Token 平均间隔和完整耗时发回聊天。第 6 步对照默认关闭，首轮解释完结果后再开启。
+
+当前在 Colab 中直接运行 Qwen2.5-0.5B-Instruct，固定 Transformers 版本并记录模型 commit。结果计时从 `generate` 调用前开始，Token 在 CPU 回调可用时记录；不含模型下载、加载、分词与 HTTP，也不是纯 GPU 时间。记录了原始 Token ID 与时序，后续平均间隔的口径与下面 API 首段内容实验不同，不混合比较。
+
+笔记本提供结果下载；会话结束前保存压缩包。GPU 分配并不保证固定，没有 GPU 时先停在检查步骤。当前尚未在 Colab 真正执行，笔记本没有预填结果。
+
+以下保留 API 实验说明，供接入服务时使用。
+
+## 今天的第一步：只采集一条请求
+
+简化链路：输入文本 → 模板/分词 → 接收与排队 → Prefill → Decode → 流式返回。实际执行会交错调度，缓存也可能减少计算；这是逻辑图，不代表进程部署。
+
+Prefill 处理输入并建立所需的 KV 状态，通常也完成首个输出 Token 的采样；后续 Decode 利用已有 KV，逐步生成更多 Token。我们首先观察客户端什么时候收到内容，再逐步寻找服务端时间花在哪里的证据。
+
+使用 Python 3.9 或更高版本，无需额外依赖。把下面的完整接口地址和模型名改成实际值，在能访问服务的机器上执行。示例地址并不表示本机已经运行服务。
+
+```bash
+python3 labs/001-prefill-decode/capture.py \
+  --url http://127.0.0.1:8000/v1/chat/completions \
+  --model YOUR_MODEL
+```
+
+若在另一台机器运行，可只复制 `capture.py`，然后以脚本所在路径执行。每次只发送一个请求，不自动重试、不并发；默认最多生成 64 Token，推理模型可能在正文出现前用完额度，届时根据实际配置调整。密钥仅从 `LAB_API_KEY` 环境变量读取，不贴到聊天或写进脚本。只在服务支持时加 `--include-usage`；没有 usage 就保持未知。
+
+结果写到脚本旁的 `results/<run_id>.json`，包括请求配置、内容事件及到达时间、正文/思考各自的首段延迟、耗时、usage、停止原因和错误。不保存 Authorization 请求头。提交结果前检查其中的接口地址、提示词与输出是否可以公开。
+
+`--timeout` 是连接/套接字操作超时，并非完整请求的总时长上限；异常长请求可手动中断。普通失败保留记录，中断进程不保证完成结果保存。脚本要求 SSE 与 `[DONE]` 完成标记，其他协议需要适配，不静默算作成功。
+
+首轮运行只用于验证链路和采集，不能据一次请求判断模型快慢。默认正文与思考分别计时；不将 SSE 事件数当作 Token 数，不直接推算 TPOT。
+
+本地协议检查：
+
+```bash
+python3 -m unittest discover -s labs/001-prefill-decode -p 'test_*.py' -v
+```
+
+检查使用模拟响应，覆盖角色空块、中文、思考与正文、usage、流中断、格式错误和 HTTP 失败；它们不是 GPU 性能数据。
+
+参考：[vLLM 服务接口](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/)、[服务端指标](https://docs.vllm.ai/en/latest/usage/metrics/)。访问日期：2026-10-17；具体字段按实际服务版本核实。
 
 ## 研究问题
 
